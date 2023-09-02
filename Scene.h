@@ -14,8 +14,9 @@ class Scene {
 private:
     SceneObject** objects;
     int object_count;
+    int bvh_max_depth = 8;
 
-    BVHNode *root{};
+    BVHNode *root;
 
     //environment sampling function
     //returns a color
@@ -49,6 +50,9 @@ public:
         return root;
     }
 
+    void set_bvh_max_depth(int depth){
+        bvh_max_depth = depth;
+    }
     void build_bvh();
 };
 

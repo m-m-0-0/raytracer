@@ -25,6 +25,7 @@ void Scene::add_object(SceneObject *object) {
 void Scene::build_bvh() {
     std::cout << "Building BVH" << std::endl;
     root = new BVHNode();
+    root->max_depth = bvh_max_depth;
     for(int i=0; i<object_count; i++){
         root->add_object(objects[i]);
     }

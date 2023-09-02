@@ -6,7 +6,8 @@
 #include "Interval.h"
 #include "Image.h"
 #include "Vector3.h"
-
+//chrono
+#include <chrono>
 Vector3 Camera::shoot_ray(const Ray &ray, int max_bounces) {
     static int count = 0;
     count++;
@@ -18,6 +19,7 @@ Vector3 Camera::shoot_ray(const Ray &ray, int max_bounces) {
     Hit closest_hit;
 
     std::unordered_set <SceneObject*> objects_set;
+    objects_set.reserve(scene->get_object_count());
     scene->get_root()->get_intersecting(ray, objects_set);
 
     for(SceneObject* object : objects_set){
@@ -49,11 +51,14 @@ Image* Camera::render() {
     setup_values();
     scene->build_bvh();
 
+    int lines_done = 0;
+
     //render
-    #pragma omp parallel for default(none) shared(img, std::cout)
+    #pragma omp parallel for default(none) shared(img, std::cout, lines_done)
     for(int y=0; y<height; y++){
-        if(y % 10 == 0){
-            std::cout << "Rendering line " << y << std::endl;
+        std::chrono::high_resolution_clock::time_point start;
+        if(y % 100 == 0){
+            start = std::chrono::high_resolution_clock::now();
         }
         #pragma omp parallel for default(none) shared(img, y, std::cout)
         for(int x=0; x<width; x++){
@@ -66,6 +71,17 @@ Image* Camera::render() {
             } catch(std::exception& e){
                 std::cout << e.what() << std::endl;
             }
+        }
+        lines_done++;
+        if(y % 100 == 0){
+            auto end = std::chrono::high_resolution_clock::now();
+            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count();
+            std::cout << "Rendered line " << y << " in " << duration << "ms" << std::endl;
+            //Mrays/s
+            std::cout << "Speed: " << (double)(width * samples) / duration / 10.0 << " Mrays/s" << std::endl;
+            //progress and estimated time
+            std::cout << "Progress: " << (lines_done * 100.0) / height << "%, ";
+            std::cout <<"Estimated time: " << (duration * (height - lines_done)) / 1000.0 / 10 << "s" << std::endl;
         }
     }
 

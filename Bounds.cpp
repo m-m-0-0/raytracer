@@ -7,12 +7,12 @@
 #include "Ray.h"
 
 void Bounds::set_min_max(Vector3 min, Vector3 max) {
-    extents = (max - min) * 0.5f;
+    extents = (max - min) / 2;
     center = min + extents;
 }
 
 void Bounds::encapsulate(Vector3 point){
-    Vector3 min = center - extents ;
+    Vector3 min = center - extents;
     Vector3 max = center + extents;
 
     Vector3 new_min = Vector3(

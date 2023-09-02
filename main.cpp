@@ -28,22 +28,23 @@ int main(int argc, char* argv[]) {
     auto start = std::chrono::high_resolution_clock::now();
 
     auto aspect_ratio = 16.0 / 9.0;
-    auto image_width = 100;
+    auto image_width = 800;
 
     auto image_height = (int)(image_width / aspect_ratio);
     image_height = (image_height < 1) ? 1 : image_height;
 
-    Camera camera{Vector3(0,0,-5)};
+    Camera camera{Vector3(0,1,-10)};
     camera.width = image_width;
     camera.height = image_height;
-    camera.samples = 20;
-    camera.max_bounces = 4;
+    camera.samples = 50;
+    camera.max_bounces = 10;
 
     //create scene
-    Scene* scene = many_balls_scene(100);
+    Scene* scene = many_balls_scene(1000);
+    scene->set_bvh_max_depth(8);
     camera.set_scene(scene);
 
-    camera.look_at(scene->get_objects()[0]->Transform.position());
+    camera.look_at(camera.Transform.forward());
 
     //camera.render("./tmp.ppm");
 
@@ -85,17 +86,17 @@ Scene* many_balls_scene(int n_balls){
 
     auto* Ground = new AAB(10, 0.1, 10, Vector3(0, -1, 0));
     Ground->material = new Lambertian(Vector3(0.5, 0.5, 0.5));
-    scene->add_object(Ground);
+    //scene->add_object(Ground);
 
     int n_spheres = n_balls;
     for(int i=0; i<n_spheres; i++){
-        auto* sphere = new Sphere(random_double(0.1, 0.2));
+        auto* sphere = new Sphere(random_double(0.05, 0.1));
         //on the ground, in front of the camera
-        sphere->Transform.set_position(Vector3(random_double(-4, 4), random_double(0,5), random_double(-4, 0)));
+        sphere->Transform.set_position(Vector3(random_double(-4, 4), random_double(0,5), random_double(-10, 0)));
         double mat_choice = random_double();
-        if(mat_choice < 0.8){
+        if(mat_choice < 0.33){
             sphere->material = new Lambertian(Vector3::random(0,1));
-        } else if(mat_choice < 0.95){
+        } else if(mat_choice < 0.66){
             sphere->material = new Metallic(Vector3::random(0,1), random_double(0, 0.5));
         } else {
             sphere->material = new Dielectric(Vector3(1, 1, 1), random_double(1.1, 2));
@@ -168,29 +169,28 @@ Scene* mat_test_scene(){
     return scene;
 }
 
-//four objects, integer positions and sizes, to test bounds and BVH
 Scene* bvh_test_scene(){
     Scene* scene = new Scene();
 
-    auto* sphere = new Sphere(1);
-    sphere->Transform.set_position(Vector3(2, 0, 0));
-    sphere->material = new Lambertian(Vector3(1, 0,0));
-    scene->add_object(sphere);
+    //grid of balls in front of the camera
+    int n_spheres = 100;
+    for(int i=0; i<n_spheres; i++){
+        auto* sphere = new Sphere(random_double(0.02, 0.04));
+        //on the ground, in front of the camera
+        double x = (i % 10) / 10.0;
+        double y = (i / 10) / 10.0;
+        sphere->Transform.set_position(Vector3(x, y, -2));
+        double mat_choice = random_double();
+        if(mat_choice < 0.8){
+            sphere->material = new Lambertian(Vector3::random(0,1));
+        } else if(mat_choice < 0.95){
+            sphere->material = new Metallic(Vector3::random(0,1), random_double(0, 0.5));
+        } else {
+            sphere->material = new Dielectric(Vector3(1, 1, 1), random_double(1.1, 2));
+        }
 
-    auto* sphere2 = new Sphere(1);
-    sphere2->Transform.set_position(Vector3(0, 0, 0));
-    sphere2->material = new Metallic(Vector3(1,1,0), 0.1);
-    scene->add_object(sphere2);
-
-    auto* sphere3 = new Sphere(1);
-    sphere3->Transform.set_position(Vector3(-2, 0, 0));
-    sphere3->material = new Lambertian(Vector3(0,0,1));
-    scene->add_object(sphere3);
-
-    auto* sphere4 = new Sphere(1);
-    sphere4->Transform.set_position(Vector3(0, 0, -2));
-    sphere4->material = new Dielectric(Vector3(1, 0,0), 1.5);
-    scene->add_object(sphere4);
+        scene->add_object(sphere);
+    }
 
     //environment function
     scene->set_environment([](Ray ray){

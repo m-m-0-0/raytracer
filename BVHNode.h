@@ -21,7 +21,7 @@ private:
     int object_count;
 
 public:
-    int max_depth = 1;
+    int max_depth = 8;
 
     BVHNode(Bounds bounds, BVHNode *parent){
         this->bounds = bounds;

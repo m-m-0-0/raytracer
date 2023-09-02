@@ -36,7 +36,11 @@ struct Bounds {
 
     void set_min_max(Vector3 min, Vector3 max);
 
-    inline bool Bounds::intersects_fast(Ray ray){
+    inline bool intersects_fast(Ray ray) {
+        if(ray.DirectionInverse.near_zero()){
+            std::cout << "Ray inverse was not calculated" << std::endl;
+            exit(0);
+        }
         double tmin = 0.0;
         double tmax = INFINITY;
 

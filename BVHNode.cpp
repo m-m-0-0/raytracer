@@ -16,7 +16,7 @@ void BVHNode::recalculate_bounds() {
     }
 
     if(children != nullptr){
-        for(int i=0; i<8; i++){
+        for(int i=0; i<2; i++){
             if(children[i] == nullptr){
                 continue;
             }
@@ -33,40 +33,42 @@ void BVHNode::build(int _depth) {
         if (object_count > 0) {
             if (_depth < max_depth) {
                 //we split!
-                children = new BVHNode*[8]; //octree
+                children = new BVHNode*[2]; //octree
 
-                Vector3 size = bounds.extents;
+                Vector3 extents = bounds.extents;
                 Vector3 center = bounds.center;
 
-                Vector3 TFL = Vector3(center.x - size.x / 2, center.y + size.y / 2, center.z - size.z / 2);
-                Vector3 TFR = Vector3(center.x + size.x / 2, center.y + size.y / 2, center.z - size.z / 2);
-                Vector3 TBL = Vector3(center.x - size.x / 2, center.y + size.y / 2, center.z + size.z / 2);
-                Vector3 TBR = Vector3(center.x + size.x / 2, center.y + size.y / 2, center.z + size.z / 2);
-                Vector3 BFL = Vector3(center.x - size.x / 2, center.y - size.y / 2, center.z - size.z / 2);
-                Vector3 BFR = Vector3(center.x + size.x / 2, center.y - size.y / 2, center.z - size.z / 2);
-                Vector3 BBL = Vector3(center.x - size.x / 2, center.y - size.y / 2, center.z + size.z / 2);
-                Vector3 BBR = Vector3(center.x + size.x / 2, center.y - size.y / 2, center.z + size.z / 2);
+                //split on longest axis
 
-                Bounds TFL_bounds = Bounds(TFL, size / 2);
-                Bounds TFR_bounds = Bounds(TFR, size / 2);
-                Bounds TBL_bounds = Bounds(TBL, size / 2);
-                Bounds TBR_bounds = Bounds(TBR, size / 2);
-                Bounds BFL_bounds = Bounds(BFL, size / 2);
-                Bounds BFR_bounds = Bounds(BFR, size / 2);
-                Bounds BBL_bounds = Bounds(BBL, size / 2);
-                Bounds BBR_bounds = Bounds(BBR, size / 2);
+                int axis = 0;
+                if (extents.y > extents.x && extents.y > extents.z)
+                    axis = 1;
+                else if (extents.z > extents.y && extents.z > extents.x)
+                    axis = 2;
 
-                children[0] = new BVHNode(TFL_bounds, this);
-                children[1] = new BVHNode(TFR_bounds, this);
-                children[2] = new BVHNode(TBL_bounds, this);
-                children[3] = new BVHNode(TBR_bounds, this);
-                children[4] = new BVHNode(BFL_bounds, this);
-                children[5] = new BVHNode(BFR_bounds, this);
-                children[6] = new BVHNode(BBL_bounds, this);
-                children[7] = new BVHNode(BBR_bounds, this);
+                Vector3 left = center;
+                Vector3 right = center;
+                Vector3 new_extents = extents;
 
-                for (int i = 0; i < 8; i++) {
-                    children[i]->depth = _depth;
+                if (axis == 0) {
+                    left.x -= extents.x / 2;
+                    right.x += extents.x / 2;
+                    new_extents.x *= 0.51;
+                } else if (axis == 1) {
+                    left.y -= extents.y / 2;
+                    right.y += extents.y / 2;
+                    new_extents.y *= 0.51;
+                } else {
+                    left.z -= extents.z / 2;
+                    right.z += extents.z / 2;
+                    new_extents.z *= 0.51;
+                }
+
+                children[0] = new BVHNode(Bounds(left, new_extents), this);
+                children[1] = new BVHNode(Bounds(right, new_extents), this);
+
+                for (int i = 0; i < 2; i++) {
+                    children[i]->depth = _depth + 1;
                     children[i]->max_depth = max_depth;
                 }
             }
@@ -76,8 +78,8 @@ void BVHNode::build(int _depth) {
     //if we split and have objects, add them to children
     if (objects != nullptr && children != nullptr) {
         for (int i = 0; i < object_count; i++) {
-            for (int j = 0; j < 8; j++) {
-                auto object_bounds = objects[i]->get_bounds();
+            auto object_bounds = objects[i]->get_bounds();
+            for (int j = 0; j < 2; j++) {
                 if (children[j]->bounds.intersects(object_bounds)) {
                     children[j]->add_object(objects[i]);
                 }
@@ -91,7 +93,7 @@ void BVHNode::build(int _depth) {
     //if we did split, build children
     if(children != nullptr){
 #pragma omp parallel for
-        for(int i=0; i<8; i++){
+        for(int i=0; i<2; i++){
             children[i]->build(depth+1);
         }
     }
@@ -99,8 +101,8 @@ void BVHNode::build(int _depth) {
 
 void BVHNode::shake(){
     if(children != nullptr){
-#pragma omp parallel for
-        for(int i=0; i<8; i++){
+//#pragma omp parallel for
+        for(int i=0; i<2; i++){
             if(children[i] == nullptr){
                 continue;
             }
@@ -128,7 +130,7 @@ void BVHNode::get_intersecting(Ray ray, std::unordered_set<SceneObject*>& _objec
     }
 
     //if i'm not a leaf, check my children
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < 2; i++) {
         if (children[i] == nullptr) {
             continue;
         }

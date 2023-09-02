@@ -18,7 +18,7 @@ class Camera {
 private:
     double viewport_width;
     double viewport_height;
-    double focal_length = 1;
+    double focal_length = 0.0;
     Vector3 viewport_top_left;
     Vector3 viewport_u;
     Vector3 viewport_v;
@@ -46,7 +46,17 @@ public:
         v = w.cross(u);
     }
 
+    void setup_wuv(){
+        focal_length = 1.0;
+        w = (Transform.position() - Transform.forward()).unit_vector();
+        u = Transform.up().cross(w).unit_vector();
+        v = w.cross(u);
+    }
+
     void setup_values(){
+        if(focal_length == 0.0){
+            setup_wuv();
+        }
         auto theta = degrees_to_radians(vertical_fov);
         auto h = tan(theta/2);
         viewport_height = 2.0 * h * focal_length;
@@ -66,14 +76,12 @@ public:
         Transform.set_position(Vector3(0, 0, 0));
         width = 640;
         height = 480;
-        focal_length = 1;
     }
 
     Camera(Vector3 center){
         Transform.set_position(center);
         width = 640;
         height = 480;
-        focal_length = 1;
     }
 
     Camera(Vector3 center, int width, int height){
@@ -86,7 +94,6 @@ public:
         Transform.set_position(center);
         this->width = width;
         this->height = height;
-        this->focal_length = focal_length;
     }
 
     void set_scene(Scene* _scene){

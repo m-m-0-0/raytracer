@@ -54,13 +54,15 @@ add_executable(RayTracer main.cpp
         Bounds.h
         BVHNode.cpp
         BVHNode.h
+        Lights/Light.cpp
+        Lights/Light.h
 )
 
 
 target_link_libraries(RayTracer PUBLIC -static)
 find_package(OpenMP)
 if(OpenMP_CXX_FOUND)
-    set(OMP_NUM_THREADS 10)
+    #set(OMP_NUM_THREADS 16)
     #-fopenmp if gcc
     #/openmp if msvc
     if(MSVC)
