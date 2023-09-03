@@ -13,8 +13,13 @@
 #include "Types/Window.h"
 #include <Windows.h>
 #include <chrono>
+#include <vector>
 
 #include "oidn/include/OpenImageDenoise/oidn.hpp"
+#include "Scenes/ManyBallsScene.h"
+
+//TODO: properly fix this by using inherited classes
+std::vector<std::unique_ptr<Scene>> scenes;
 
 Scene* many_balls_scene(int n_balls);
 Scene* mat_test_scene();
@@ -26,9 +31,16 @@ void Vector3_unit_test();
 
 void test_bvh_depth(Scene* scene, Camera* camera, Window* window, int depth_max);
 
+void prepare_scenes(){
+    scenes.push_back(std::make_unique<ManyBallsScene>(100));
+}
+
 int main(int argc, char* argv[]) {
     //test_image();
     //test_pattern();
+
+    //TODO: see where this actually belongs in chronological order
+    prepare_scenes();
 
     Vector3_unit_test();
 
@@ -51,7 +63,10 @@ int main(int argc, char* argv[]) {
     camera->max_bounces = argc > 4 ? atoi(argv[4]) : 10;
 
     //create scene
-    Scene* scene = test_scene_2();
+    //Scene* scene = test_scene_2();
+    Scene* scene = scenes[0].get();
+    //build the scene
+    scene->init_scene();
     camera->set_scene(scene);
 
     //camera.look_at(camera.Transform.forward() + camera.Transform.position());
@@ -133,7 +148,7 @@ int main(int argc, char* argv[]) {
     window->close();
     return 0;
 }
-
+/*
 Scene* volume_test_scene(){
     Scene* scene = new Scene();
 
@@ -320,7 +335,7 @@ Scene* test_scene_2(){
 
     return scene;
 }
-
+*/
 void Vector3_unit_test(){
     Vector3 v1(1, 2, 3);
     Vector3 v2(4, 5, 6);

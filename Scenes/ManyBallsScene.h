@@ -7,10 +7,11 @@
 
 #include "..\Scene.h"
 
-class ManyBallsScene {
+class ManyBallsScene : public Scene {
 public:
-    Scene* Scene;
-    ManyBallsScene(int n_balls);
+    int n_balls = 100;
+    explicit ManyBallsScene(int n_balls);
+    void init_scene() override;
 };
 
 #endif //RAYTRACER_MANYBALLSSCENE_H

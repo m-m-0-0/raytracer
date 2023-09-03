@@ -34,6 +34,8 @@ public:
         env_func = nullptr;
     }
 
+    std::string sceneName = "";
+
     int get_object_count();
     SceneObject** get_objects();
     void add_object(SceneObject *object);
@@ -75,6 +77,8 @@ public:
         }
         return root->get_bounds();
     }
+
+    virtual void init_scene() = 0;
 };
 
 #endif //RAYTRACER_SCENE_H

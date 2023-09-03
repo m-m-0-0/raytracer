@@ -9,9 +9,11 @@
 #include "../materials/Dielectric.h"
 
 ManyBallsScene::ManyBallsScene(int n_balls) {
-    //create scene
-    Scene = new class Scene();
+    this->n_balls = n_balls;
+}
 
+void ManyBallsScene::init_scene() {
+    //create scene
     auto* Ground = new AAB(10, 0.1, 10, Vector3(0, -1, 0));
     Ground->material = new Lambertian(Vector3(0.5, 0.5, 0.5));
     //scene->add_object(Ground);
@@ -30,11 +32,11 @@ ManyBallsScene::ManyBallsScene(int n_balls) {
             sphere->material = new Dielectric(Vector3(1, 1, 1), random_double(1.1, 2));
         }
 
-        Scene->add_object(sphere);
+        add_object(sphere);
     }
 
     //environment function
-    Scene->set_environment([](Ray ray){
+    set_environment([](Ray ray){
         auto unit_direction = ray.Direction.unit_vector();
         auto t = 0.5 * (unit_direction.y + 1.0);
         return (1.0 - t) * Vector3(1, 1, 1) + t * Vector3(0.5, 0.7, 1.0);
