@@ -59,6 +59,8 @@ add_executable(RayTracer main.cpp
         Lights/PointLight.h
         Types/simd_utils.cpp
         Types/simd_utils.h
+        Scenes/ManyBallsScene.cpp
+        Scenes/ManyBallsScene.h
 )
 
 
