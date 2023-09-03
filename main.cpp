@@ -18,6 +18,7 @@
 #include "oidn/include/OpenImageDenoise/oidn.hpp"
 #include "Scenes/ManyBallsScene.h"
 #include "Scenes/VolumeTestScene.h"
+#include "Scenes/MatTestScene.h"
 
 //TODO: properly fix this by using inherited classes
 std::vector<std::unique_ptr<Scene>> scenes;
@@ -35,6 +36,7 @@ void test_bvh_depth(Scene* scene, Camera* camera, Window* window, int depth_max)
 void prepare_scenes(){
     scenes.push_back(std::make_unique<ManyBallsScene>(100));
     scenes.push_back(std::make_unique<VolumeTestScene>());
+    scenes.push_back(std::make_unique<MatTestScene>());
 }
 
 int main(int argc, char* argv[]) {
@@ -66,7 +68,7 @@ int main(int argc, char* argv[]) {
 
     //create scene
     //Scene* scene = test_scene_2();
-    Scene* scene = scenes[1].get();
+    Scene* scene = scenes[2].get();
     //build the scene
     scene->init_scene();
     camera->set_scene(scene);
@@ -151,37 +153,6 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 /*
-Scene* mat_test_scene(){
-    Scene* scene = new Scene();
-
-    auto* Ground = new AAB(10, 0.1, 10, Vector3(0, -1, 0));
-    Ground->material = new Lambertian(Vector3(0.5, 0.5, 0.5));
-    scene->add_object(Ground);
-
-    auto* sphere = new Sphere(1);
-    sphere->Transform.set_position(Vector3(-2, .5, -1));
-    sphere->material = new Dielectric(Vector3(1, 0,0), 1.5);
-    scene->add_object(sphere);
-
-    auto* sphere2 = new Sphere(1);
-    sphere2->Transform.set_position(Vector3(0, .5, -1));
-    sphere2->material = new Metallic(Vector3(1,1,0), 0.1);
-    scene->add_object(sphere2);
-
-    auto* sphere3 = new Sphere(1);
-    sphere3->Transform.set_position(Vector3(2, .5, -1));
-    sphere3->material = new Lambertian(Vector3(0,0,1));
-    scene->add_object(sphere3);
-
-    //environment function
-    scene->set_environment([](Ray ray){
-        auto unit_direction = ray.Direction.unit_vector();
-        auto t = 0.5 * (unit_direction.y + 1.0);
-        return (1.0 - t) * Vector3(1, 1, 1) + t * Vector3(0.5, 0.7, 1.0);
-    });
-
-    return scene;
-}
 
 Scene* bvh_test_scene(){
     Scene* scene = new Scene();
