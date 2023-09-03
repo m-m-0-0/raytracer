@@ -8,11 +8,6 @@
 #include "../materials/Metallic.h"
 #include "../materials/Dielectric.h"
 
-ManyBallsScene::ManyBallsScene(int n_balls) {
-    this->sceneName = "ManyBallsScene";
-    this->n_balls = n_balls;
-}
-
 void ManyBallsScene::init_scene() {
     //create scene
     auto* Ground = new AAB(10, 0.1, 10, Vector3(0, -1, 0));

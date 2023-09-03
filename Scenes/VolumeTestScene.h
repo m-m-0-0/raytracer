@@ -10,7 +10,7 @@
 
 class VolumeTestScene : public Scene{
 public:
-    explicit VolumeTestScene();
+    VolumeTestScene() : Scene("VolumeTestScene") {}
     void init_scene() override;
 };
 

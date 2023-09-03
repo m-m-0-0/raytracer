@@ -8,10 +8,6 @@
 #include "../materials/Lambertian.h"
 #include "../Objects/AAB.h"
 
-VolumeTestScene::VolumeTestScene() {
-    this->sceneName = "VolumeTestScene";
-}
-
 void VolumeTestScene::init_scene() {
 
     auto* Ground = new AAB(1000, 0.1, 1000, Vector3(0, -1, 0));

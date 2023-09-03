@@ -10,7 +10,7 @@
 class ManyBallsScene : public Scene {
 public:
     int n_balls = 100;
-    explicit ManyBallsScene(int n_balls);
+    explicit ManyBallsScene(int n_balls) : Scene("ManyBallsScene"){this->n_balls = n_balls;};
     void init_scene() override;
 };
 
