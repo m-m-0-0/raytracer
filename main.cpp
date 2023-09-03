@@ -16,6 +16,9 @@
 
 #include "oidn/include/OpenImageDenoise/oidn.hpp"
 
+//Argument Parameters
+int image_width, image_height, samples, bounces;
+
 Scene* many_balls_scene(int n_balls);
 Scene* mat_test_scene();
 Scene* volume_test_scene();
@@ -26,6 +29,27 @@ void Vector3_unit_test();
 
 void test_bvh_depth(Scene* scene, Camera* camera, Window* window, int depth_max);
 
+Camera* SetupCamera(Vector3 center = Vector3(0, 1, 3),
+                    int image_width=1920, int image_height=1080,
+                    int samples = 5, int bounces = 10){
+    auto camera = new Camera{center};
+    camera->width = image_width;
+    camera->height = image_height;
+    camera->samples = samples;
+    camera->max_bounces = bounces;
+    return camera;
+}
+
+void parse_cli(int argc, char* argv[]){
+    //auto aspect_ratio = 16.0 /
+    //cli is raytracer.exe width height samples bounces
+    image_width = argc > 1 ? atoi(argv[1]) : 1920;
+    image_height = argc > 2 ? atoi(argv[2]) : 1080;
+    //image_height = (image_height < 1) ? 1 : image_height;
+    samples = argc > 3 ? atoi(argv[3]) : 5;
+    bounces = argc > 4 ? atoi(argv[4]) : 10;
+}
+
 int main(int argc, char* argv[]) {
     //test_image();
     //test_pattern();
@@ -34,24 +58,14 @@ int main(int argc, char* argv[]) {
 
     SDL_Init(SDL_INIT_VIDEO);
 
+    parse_cli(argc, argv);
     auto start = std::chrono::high_resolution_clock::now();
 
-    //auto aspect_ratio = 16.0 /
-    //cli is raytracer.exe width height samples bounces
-    auto image_width = argc > 1 ? atoi(argv[1]) : 1920;
-    auto image_height = argc > 2 ? atoi(argv[2]) : 1080;
-    //image_height = (image_height < 1) ? 1 : image_height;
-    auto aspect_ratio = image_width / (double)image_height;
-
-
-    auto* camera = new Camera{Vector3(0,1,3)};
-    camera->width = image_width;
-    camera->height = image_height;
-    camera->samples = argc > 3 ? atoi(argv[3]) : 5;
-    camera->max_bounces = argc > 4 ? atoi(argv[4]) : 10;
+    auto* camera = SetupCamera({0, 1, 3}, image_width, image_height, samples, bounces);
 
     //create scene
     Scene* scene = test_scene_2();
+
     camera->set_scene(scene);
 
     //camera.look_at(camera.Transform.forward() + camera.Transform.position());
@@ -60,7 +74,6 @@ int main(int argc, char* argv[]) {
     auto center = scene->get_bounds();
     camera->look_at(center.center);
     std::cout << "focal length: " << camera->focal_length << std::endl;
-
 
     //test_bvh_depth(scene, camera, nullptr, 11);
 
