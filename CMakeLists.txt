@@ -63,6 +63,10 @@ add_executable(RayTracer main.cpp
         Scenes/ManyBallsScene.h
         Scenes/VolumeTestScene.cpp
         Scenes/VolumeTestScene.h
+        Scenes/MatTestScene.cpp
+        Scenes/MatTestScene.h
+        Scenes/BvhTestScene.cpp
+        Scenes/BvhTestScene.h
 )
 
 

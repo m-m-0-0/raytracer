@@ -19,16 +19,11 @@
 #include "Scenes/ManyBallsScene.h"
 #include "Scenes/VolumeTestScene.h"
 #include "Scenes/MatTestScene.h"
+#include "Scenes/BvhTestScene.h"
 
 //TODO: properly fix this by using inherited classes
 std::vector<std::unique_ptr<Scene>> scenes;
 
-Scene* many_balls_scene(int n_balls);
-Scene* mat_test_scene();
-Scene* volume_test_scene();
-Scene* bvh_test_scene();
-Scene* cornell_box_scene();
-Scene* test_scene_2();
 void Vector3_unit_test();
 
 void test_bvh_depth(Scene* scene, Camera* camera, Window* window, int depth_max);
@@ -37,6 +32,7 @@ void prepare_scenes(){
     scenes.push_back(std::make_unique<ManyBallsScene>(100));
     scenes.push_back(std::make_unique<VolumeTestScene>());
     scenes.push_back(std::make_unique<MatTestScene>());
+    scenes.push_back(std::make_unique<BvhTestScene>());
 }
 
 int main(int argc, char* argv[]) {
@@ -68,7 +64,7 @@ int main(int argc, char* argv[]) {
 
     //create scene
     //Scene* scene = test_scene_2();
-    Scene* scene = scenes[2].get();
+    Scene* scene = scenes[3].get();
     //build the scene
     scene->init_scene();
     camera->set_scene(scene);
@@ -153,40 +149,6 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 /*
-
-Scene* bvh_test_scene(){
-    Scene* scene = new Scene();
-
-    //grid of balls in front of the camera
-    int n_spheres = 100;
-    for(int i=0; i<n_spheres; i++){
-        auto* sphere = new Sphere(random_double(0.02, 0.04));
-        //on the ground, in front of the camera
-        double x = (i % 10) / 10.0;
-        double y = (i / 10) / 10.0;
-        sphere->Transform.set_position(Vector3(x, y, 1));
-        double mat_choice = random_double();
-        if(mat_choice < 0.33){
-            sphere->material = new Lambertian(Vector3::random(0,1));
-        } else if(mat_choice < 0.66){
-            sphere->material = new Metallic(Vector3::random(0,1), random_double(0, 0.5));
-        } else {
-            sphere->material = new Dielectric(Vector3(1, 1, 1), random_double(1.1, 2));
-        }
-
-        scene->add_object(sphere);
-    }
-
-    //environment function
-    scene->set_environment([](Ray ray){
-        auto unit_direction = ray.Direction.unit_vector();
-        auto t = 0.5 * (unit_direction.y + 1.0);
-        return (1.0 - t) * Vector3(1, 1, 1) + t * Vector3(0.5, 0.7, 1.0);
-    });
-
-    return scene;
-}
-
 Scene* cornell_box_scene(){
     Scene* scene = new Scene();
 
