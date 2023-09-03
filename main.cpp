@@ -20,6 +20,7 @@
 #include "Scenes/VolumeTestScene.h"
 #include "Scenes/MatTestScene.h"
 #include "Scenes/BvhTestScene.h"
+#include "Scenes/CornellBoxScene.h"
 
 //TODO: properly fix this by using inherited classes
 std::vector<std::unique_ptr<Scene>> scenes;
@@ -33,6 +34,7 @@ void prepare_scenes(){
     scenes.push_back(std::make_unique<VolumeTestScene>());
     scenes.push_back(std::make_unique<MatTestScene>());
     scenes.push_back(std::make_unique<BvhTestScene>());
+    scenes.push_back(std::make_unique<CornellBoxScene>());
 }
 
 int main(int argc, char* argv[]) {
@@ -64,7 +66,7 @@ int main(int argc, char* argv[]) {
 
     //create scene
     //Scene* scene = test_scene_2();
-    Scene* scene = scenes[3].get();
+    Scene* scene = scenes[4].get();
     //build the scene
     scene->init_scene();
     camera->set_scene(scene);
@@ -149,48 +151,6 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 /*
-Scene* cornell_box_scene(){
-    Scene* scene = new Scene();
-
-    //walls
-    auto* left_wall = new AAB(10, 10, 0.1, Vector3(-5, 0, 0));
-    left_wall->material = new Lambertian(Vector3(1, 0, 0));
-    scene->add_object(left_wall);
-
-    auto* right_wall = new AAB(10, 10, 0.1, Vector3(5, 0, 0));
-    right_wall->material = new Lambertian(Vector3(0, 1, 0));
-    scene->add_object(right_wall);
-
-    auto* back_wall = new AAB(0.1, 10, 10, Vector3(0, 0, -5));
-    back_wall->material = new Lambertian(Vector3(1, 1, 1));
-    scene->add_object(back_wall);
-
-    auto* front_wall = new AAB(0.1, 10, 10, Vector3(0, 0, 5));
-    front_wall->material = new Lambertian(Vector3(1, 1, 1));
-    scene->add_object(front_wall);
-
-    auto* top_wall = new AAB(10, 0.1, 10, Vector3(0, 5, 0));
-    top_wall->material = new Lambertian(Vector3(1, 1, 1));
-    scene->add_object(top_wall);
-
-    auto* bottom_wall = new AAB(10, 0.1, 10, Vector3(0, -5, 0));
-    bottom_wall->material = new Lambertian(Vector3(1, 1, 1));
-    scene->add_object(bottom_wall);
-
-    //light
-    auto* light = new AAB(1, 0.1, 1, Vector3(0, 4.9, 0));
-    light->material = new Lambertian(Vector3(1, 1, 1));
-    scene->add_object(light);
-
-    //environment function
-    scene->set_environment([](Ray ray){
-        auto unit_direction = ray.Direction.unit_vector();
-        auto t = 0.5 * (unit_direction.y + 1.0);
-        return (1.0 - t) * Vector3(1, 1, 1) + t * Vector3 (0.5, 0.7, 1.0);
-    });
-
-    return scene;
-}
 
 void test_bvh_depth(Scene* scene, Camera* camera, Window* window, int depth_max){
     //bvh times array
