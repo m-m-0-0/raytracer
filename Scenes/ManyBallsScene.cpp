@@ -9,6 +9,7 @@
 #include "../materials/Dielectric.h"
 
 ManyBallsScene::ManyBallsScene(int n_balls) {
+    this->sceneName = "ManyBallsScene";
     this->n_balls = n_balls;
 }
 
