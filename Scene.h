@@ -28,13 +28,21 @@ private:
     std::function<Vector3(Ray)> env_func;
 
 public:
+    std::string sceneName = "";
+
     Scene(){
         object_count = 0;
         objects = new SceneObject*[0];
         env_func = nullptr;
+        sceneName = nullptr;
     }
 
-    std::string sceneName = "";
+    explicit Scene(std::string name){
+        object_count = 0;
+        objects = new SceneObject*[0];
+        env_func = nullptr;
+        sceneName = name;
+    }
 
     int get_object_count();
     SceneObject** get_objects();
