@@ -93,6 +93,9 @@ Vector3 AAB::get_normal(Ray ray, double t) {
     return Vector3(0, 0, 0);
 }
 
-Bounds AAB::get_bounds() {
-    return Bounds(Transform.position(), Vector3(x/2, y/2, z/2));
+Bounds * AAB::get_bounds() {
+    if(bounds == nullptr){
+        bounds = new Bounds(Transform.position(), Vector3(x/2, y/2, z/2));
+    }
+    return bounds;
 }

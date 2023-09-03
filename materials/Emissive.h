@@ -6,7 +6,7 @@
 #define RAYTRACER_EMISSIVE_H
 
 
-#include "../Material.h"
+#include "Material.h"
 
 class Emissive : public Material{
 public:

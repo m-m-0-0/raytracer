@@ -6,7 +6,7 @@
 #define RAYTRACER_BVHNODE_H
 
 
-#include "Bounds.h"
+#include "Types/Bounds.h"
 #include "Objects/SceneObject.h"
 #include <unordered_set>
 
@@ -52,7 +52,7 @@ public:
             objects = new SceneObject*[1];
             objects[0] = object;
             object_count = 1;
-            bounds.encapsulate(object->get_bounds());
+            bounds.encapsulate(*object->get_bounds());
             return;
         }
 
@@ -62,7 +62,26 @@ public:
             new_objects[i] = objects[i];
         }
 
-        bounds.encapsulate(object->get_bounds());
+        bounds.encapsulate(*object->get_bounds());
+
+        new_objects[object_count++] = object;
+        delete[] objects;
+        objects = new_objects;
+    }
+
+    void add_object_no_bounds(SceneObject* object){
+        if (objects == nullptr){
+            objects = new SceneObject*[1];
+            objects[0] = object;
+            object_count = 1;
+            return;
+        }
+
+        auto** new_objects = new SceneObject*[object_count + 1];
+
+        for (int i = 0; i < object_count; i++){
+            new_objects[i] = objects[i];
+        }
 
         new_objects[object_count++] = object;
         delete[] objects;
@@ -71,9 +90,16 @@ public:
 
     void build(int _depth);
     void shake();
-    void get_intersecting(Ray ray, std::unordered_set<SceneObject *> &_objects);
+    void get_intersecting(Ray ray, std::unordered_set<SceneObject*> &_objects);
 
+    Bounds get_bounds(){
+        return bounds;
+    }
     void recalculate_bounds();
+
+    void print_tree(int depth);
+
+    void shoot_ray_bvh(Ray ray, Hit &closest_hit);
 };
 
 

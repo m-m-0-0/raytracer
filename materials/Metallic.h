@@ -6,7 +6,7 @@
 #define RAYTRACER_METALLIC_H
 
 
-#include "../Material.h"
+#include "Material.h"
 
 class Metallic : public Material {
 public:

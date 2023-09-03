@@ -6,7 +6,7 @@
 #define RAYTRACER_TEXTURE_H
 
 
-#include "Vector3.h"
+#include "Types/Vector3.h"
 #include "Image.h"
 
 class Texture {

@@ -6,10 +6,11 @@
 #define RAYTRACER_CAMERA_H
 
 
-#include "Vector3.h"
-#include "Ray.h"
+#include "Types/Vector3.h"
+#include "Types/Ray.h"
 #include "utils.h"
 #include "Scene.h"
+#include "Types/Window.h"
 #include <iostream>
 
 class Image;
@@ -18,7 +19,6 @@ class Camera {
 private:
     double viewport_width;
     double viewport_height;
-    double focal_length = 0.0;
     Vector3 viewport_top_left;
     Vector3 viewport_u;
     Vector3 viewport_v;
@@ -34,11 +34,19 @@ public:
     int width;
     int height;
     double vertical_fov = 90;
-    int max_bounces = 10;
 
+    int max_bounces = 10;
     int samples = 10;
 
     void look_at(Vector3 position){
+        focal_length = 1.0;
+
+        w = (Transform.position() - position).unit_vector();
+        u = Transform.up().cross(w).unit_vector();
+        v = w.cross(u);
+    }
+
+    void look_at_zoom(Vector3 position){
         focal_length = (Transform.position() - position).length();
 
         w = (Transform.position() - position).unit_vector();
@@ -47,7 +55,6 @@ public:
     }
 
     void setup_wuv(){
-        focal_length = 1.0;
         w = (Transform.position() - Transform.forward()).unit_vector();
         u = Transform.up().cross(w).unit_vector();
         v = w.cross(u);
@@ -56,7 +63,9 @@ public:
     void setup_values(){
         if(focal_length == 0.0){
             setup_wuv();
+            focal_length = 1.0;
         }
+        focal_length = 1.0;
         auto theta = degrees_to_radians(vertical_fov);
         auto h = tan(theta/2);
         viewport_height = 2.0 * h * focal_length;
@@ -111,6 +120,13 @@ public:
     Vector3 pixel_sample_offset();
     Vector3 shoot_ray(const Ray &ray, int max_bounces);
 
+    Hit shoot_shadow_rays();
+
+    Image *render(Window *window);
+
+    double focal_length = 0.0;
+
+    Vector3 shoot_ray_bvh(const Ray &ray, int max_bounces);
 };
 
 

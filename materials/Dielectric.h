@@ -6,7 +6,7 @@
 #define RAYTRACER_DIELECTRIC_H
 
 
-#include "../Material.h"
+#include "Material.h"
 
 class Dielectric : public Material {
 public:

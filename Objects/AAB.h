@@ -25,7 +25,7 @@ public:
         Transform.set_position(position);
     }
 
-    Bounds get_bounds() override;
+    Bounds * get_bounds() override;
     bool intersect(Ray ray, Interval dist, Hit &hit) override;
     Vector3 get_normal(Ray ray, double t) override;
 };

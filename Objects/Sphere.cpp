@@ -3,7 +3,7 @@
 //
 
 #include "Sphere.h"
-#include "../Interval.h"
+#include "../Types/Interval.h"
 
 bool Sphere::intersect(Ray ray, Interval dist, Hit &hit) {
     Vector3 oc = ray.Origin - Transform.position();
@@ -39,6 +39,9 @@ Vector3 Sphere::get_normal(Ray ray, double t) {
     return (ray.at(t) - Transform.position()) / radius;
 }
 
-Bounds Sphere::get_bounds() {
-    return Bounds(Transform.position(), Vector3(radius, radius, radius));
+Bounds * Sphere::get_bounds() {
+    if(bounds == nullptr){
+        bounds = new Bounds(Transform.position(), Vector3(radius, radius, radius));
+    }
+    return bounds;
 }

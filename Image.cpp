@@ -96,23 +96,6 @@ void Image::test_pattern() {
     }
 }
 
-void Image::load(const std::string& path){
-    cimg_library::CImg<unsigned char> image(path.c_str());
-    width = image.width();
-    height = image.height();
-
-    pixels = new Vector3*[width];
-    for(int x=0; x<width; x++){
-        pixels[x] = new Vector3[height];
-    }
-
-    for(int x=0; x<width; x++){
-        for(int y=0; y<height; y++){
-            pixels[x][y] = Vector3(image(x, y, 0), image(x, y, 1), image(x, y, 2)) / 255.0;
-        }
-    }
-}
-
 Vector3 Image::get_pixel(int x, int y) {
 #ifdef DEBUG
     if(x < 0 || x >= width || y < 0 || y >= height){

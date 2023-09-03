@@ -6,9 +6,9 @@
 #define RAYTRACER_VOLUMETEST_H
 
 
-#include "../Ray.h"
-#include "../Hit.h"
-#include "../Material.h"
+#include "../Types/Ray.h"
+#include "../Types/Hit.h"
+#include "Material.h"
 
 class VolumeTest : public Material{
 public:

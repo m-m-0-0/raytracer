@@ -6,7 +6,7 @@
 #define RAYTRACER_LAMBERTIAN_H
 
 
-#include "../Material.h"
+#include "Material.h"
 
 class Lambertian : public Material{
 public:

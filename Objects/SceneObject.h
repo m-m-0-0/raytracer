@@ -5,17 +5,18 @@
 #ifndef RAYTRACER_SCENEOBJECT_H
 #define RAYTRACER_SCENEOBJECT_H
 
-#include "../Ray.h"
-#include "../Transform.h"
-#include "../Interval.h"
-#include "../Hit.h"
-#include "../Material.h"
-#include "../Bounds.h"
+#include "../Types/Ray.h"
+#include "../Types/Transform.h"
+#include "../Types/Interval.h"
+#include "../Types/Hit.h"
+#include "../materials/Material.h"
+#include "../Types/Bounds.h"
 
 class SceneObject {
 public:
     Transform Transform;
     Material* material;
+    Bounds* bounds = nullptr;
 
     SceneObject(){
         Transform.set_position(Vector3());
@@ -30,9 +31,10 @@ public:
         Transform.set_position(Transform.position() + delta);
     }
 
-    virtual Bounds get_bounds(){
-        return Bounds(Transform.position(), Vector3(0, 0, 0));
+    virtual Bounds* get_bounds(){
+        return new Bounds(Transform.position(), Vector3(0, 0, 0));
     }
+
 
     virtual bool intersect(Ray ray, Interval dist, Hit &hit){
         return false;

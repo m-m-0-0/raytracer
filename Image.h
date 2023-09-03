@@ -6,9 +6,8 @@
 #define RAYTRACER_IMAGE_H
 
 
-#include "Vector3.h"
+#include "Types/Vector3.h"
 #include "iostream"
-#include "Cimg.h"
 #include <fstream>
 //jpeglib-turbo
 #include <jpeglib.h>
@@ -25,6 +24,24 @@ public:
     int height;
 
     Image(int width, int height);
+
+    Vector3* get_pixels(){
+        Vector3* pixels = new Vector3[width * height];
+        for(int x=0; x<width; x++){
+            for(int y=0; y<height; y++){
+                pixels[x + y * width] = this->pixels[x][y];
+            }
+        }
+        return pixels;
+    }
+
+    void set_pixels(Vector3* pixels){
+        for(int x=0; x<width; x++){
+            for(int y=0; y<height; y++){
+                this->pixels[x][y] = pixels[x + y * width];
+            }
+        }
+    }
 
     void set_pixel(int x, int y, Vector3 color);
 

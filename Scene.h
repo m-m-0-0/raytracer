@@ -7,6 +7,7 @@
 
 #include "Objects/SceneObject.h"
 #include "BVHNode.h"
+#include "Lights/Light.h"
 #include <functional>
 
 
@@ -14,8 +15,12 @@ class Scene {
 private:
     SceneObject** objects;
     int object_count;
-    int bvh_max_depth = 8;
 
+    Light** lights;
+    int light_count;
+
+    bool is_bvh_built = false;
+    int bvh_max_depth = 8;
     BVHNode *root;
 
     //environment sampling function
@@ -31,8 +36,11 @@ public:
 
     int get_object_count();
     SceneObject** get_objects();
-
     void add_object(SceneObject *object);
+
+    int get_light_count();
+    Light** get_lights();
+    void add_light(Light *light);
 
     void set_environment(std::function<Vector3(Ray)> func){
         env_func = func;
@@ -51,9 +59,22 @@ public:
     }
 
     void set_bvh_max_depth(int depth){
-        bvh_max_depth = depth;
+        if(depth != bvh_max_depth) {
+            bvh_max_depth = depth;
+            is_bvh_built = false;
+        }
+
     }
+
     void build_bvh();
+    int get_bvh_max_depth() const;
+
+    Bounds get_bounds(){
+        if(!is_bvh_built){
+            build_bvh();
+        }
+        return root->get_bounds();
+    }
 };
 
 #endif //RAYTRACER_SCENE_H

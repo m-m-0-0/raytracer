@@ -5,7 +5,7 @@
 #ifndef RAYTRACER_UTILS_H
 #define RAYTRACER_UTILS_H
 
-#include "Vector3.h"
+#include "Types/Vector3.h"
 #include <cstdlib>
 
 inline double random_double(){

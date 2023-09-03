@@ -6,7 +6,7 @@
 #define RAYTRACER_MODEL_H
 
 
-#include "../Vector3.h"
+#include "../Types/Vector3.h"
 
 class Model {
 public:
