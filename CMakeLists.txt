@@ -71,6 +71,8 @@ add_executable(RayTracer main.cpp
         Scenes/CornellBoxScene.h
         Scenes/TestScene2.cpp
         Scenes/TestScene2.h
+        Denoiser.cpp
+        Denoiser.h
 )
 
 

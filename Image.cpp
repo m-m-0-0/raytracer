@@ -106,6 +106,16 @@ Vector3 Image::get_pixel(int x, int y) {
     return pixels[x][y];
 }
 
+Vector3 Image::get_pixel(int x, int y, int samples_per_pixel) {
+#ifdef DEBUG
+    if(x < 0 || x >= width || y < 0 || y >= height){
+        std::cout << "x: " << x << " y: " << y << std::endl;
+        throw std::out_of_range("Index out of range.");
+    }
+#endif
+    return pixels[x][y] / samples_per_pixel;
+}
+
 void Image::normalize(int samples_per_pixel) {
     for(int x=0; x<width; x++){
         for(int y=0; y<height; y++){

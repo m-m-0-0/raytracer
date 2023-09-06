@@ -15,6 +15,7 @@
 #include "Scenes/BvhTestScene.h"
 #include "Scenes/CornellBoxScene.h"
 #include "Scenes/TestScene2.h"
+#include "Denoiser.h"
 
 //TODO: properly fix this by using inherited classes
 std::vector<std::unique_ptr<Scene>> scenes;
@@ -24,7 +25,7 @@ void Vector3_unit_test();
 void test_bvh_depth(Scene* scene, Camera* camera, Window* window, int depth_max);
 
 void prepare_scenes(){
-    scenes.push_back(std::make_unique<ManyBallsScene>(100));
+    scenes.push_back(std::make_unique<ManyBallsScene>(4000));
     scenes.push_back(std::make_unique<VolumeTestScene>());
     scenes.push_back(std::make_unique<MatTestScene>());
     scenes.push_back(std::make_unique<BvhTestScene>());
@@ -53,11 +54,12 @@ int main(int argc, char* argv[]) {
     auto aspect_ratio = image_width / (double)image_height;
 
 
-    auto* camera = new Camera{Vector3(0,1,3)};
+    auto* camera = new Camera{Vector3(1,.8,3)};
     camera->width = image_width;
     camera->height = image_height;
-    camera->samples = argc > 3 ? atoi(argv[3]) : 5;
-    camera->max_bounces = argc > 4 ? atoi(argv[4]) : 10;
+    camera->samples = argc > 3 ? atoi(argv[3]) : 8;
+    camera->max_bounces = argc > 4 ? atoi(argv[4]) : 4;
+    camera->tiles_size = argc > 5 ? atoi(argv[5]) : 64;
 
     //create scene
     //Scene* scene = test_scene_2();
@@ -79,52 +81,25 @@ int main(int argc, char* argv[]) {
     Window* window = new Window(image_width, image_height);
 
     //test_bvh_depth(scene, camera, window, 12);
+    Image* image = new Image(image_width, image_height);
+    window->set_image(image);
+    window->set_samples_per_pixel(camera->samples);
+    window->update_continuously_threaded(30);
 
-    auto image = camera->render(window);
+    camera->render(image);
     image->normalize(camera->samples);
-    window->update(image);
+
     image->save("./tmp.ppm", EImageFormat::PPM);
 
     //denoise image
     std::cout << "Denoising..." << std::endl;
 
-    oidn::DeviceRef device = oidn::newDevice();
-    device.commit();
-    oidn::FilterRef filter = device.newFilter("RT");
-    oidn::BufferRef imageBuf = device.newBuffer(image_width * image_height * 3 * sizeof(float));
+    Denoiser denoiser = Denoiser();
+    Image* denoised = denoiser.denoise(image);
 
-    auto image_data = image->get_pixels();
-    float* image_data_float = new float[image_width * image_height * 3];
-    for(int i=0; i<image_width * image_height; i++){
-        image_data_float[i * 3] = image_data[i].x;
-        image_data_float[i * 3 + 1] = image_data[i].y;
-        image_data_float[i * 3 + 2] = image_data[i].z;
-    }
+    window->set_samples_per_pixel(1);
+    window->set_image(denoised);
 
-    imageBuf.write(0, sizeof(float) * 3 * image_width * image_height, image_data_float);
-    filter.setImage("color", imageBuf, oidn::Format::Float3, image_width, image_height);
-    filter.setImage("output", imageBuf, oidn::Format::Float3, image_width, image_height);
-    filter.set("hdr", false);
-    filter.commit();
-
-    float* colorPtr = (float*)imageBuf.getData();
-
-    filter.execute();
-
-    const char* errorMessage;
-    if (device.getError(errorMessage) != oidn::Error::None)
-        std::cout << "Error: " << errorMessage << std::endl;
-
-    for(int i=0; i<image_width * image_height; i++){
-        image_data[i].x = colorPtr[i * 3];
-        image_data[i].y = colorPtr[i * 3 + 1];
-        image_data[i].z = colorPtr[i * 3 + 2];
-    }
-
-    image->set_pixels(image_data);
-
-    window->update(image);
-    image->save("./tmp_denoised.ppm", EImageFormat::PPM);
 
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count();
@@ -137,13 +112,36 @@ int main(int argc, char* argv[]) {
     std::cout << "objects: " << scene->get_object_count() << std::endl;
     std::cout << "BVH depth: " << scene->get_bvh_max_depth() << std::endl;
 
-    //wait for window to close (sdl)
-    while(true){
-        window->handle_events();
-        Sleep(100);
+    //animation
+    int frames = 50;
+    for(int i=0; i<frames; i++){
+        std::cout << "Frame " << i << std::endl;
+        camera->Transform.set_position(camera->Transform.position() + Vector3(0, 0, -0.1));
+        camera->look_at(scene->get_bounds().center);
+
+        Image* image = new Image(image_width, image_height);
+        window->set_image(image);
+        window->set_samples_per_pixel(camera->samples);
+        camera->render(image);
+
+        image->normalize(camera->samples);
+        window->set_samples_per_pixel(1);
+
+        Image* denoised = denoiser.denoise(image);
+        window->set_image(denoised);
+
+        denoised->save("./tmp" + std::to_string(i) + ".ppm", EImageFormat::PPM);
     }
-    window->close();
-    return 0;
+
+    while(true){
+        SDL_Event event;
+        while(SDL_PollEvent(&event)){
+            if(event.type == SDL_QUIT){
+                window->close();
+                exit(0);
+            }
+        }
+    }
 }
 
 void test_bvh_depth(Scene* scene, Camera* camera, Window* window, int depth_max){
@@ -156,7 +154,7 @@ void test_bvh_depth(Scene* scene, Camera* camera, Window* window, int depth_max)
         scene->build_bvh();
         std::cout << "BVH depth: " << i << std::endl;
         auto start = std::chrono::high_resolution_clock::now();
-        Image* image = camera->render(window);
+        Image* image = camera->render();
         auto end = std::chrono::high_resolution_clock::now();
         bvh_times[i] = std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count();
         image->normalize(camera->samples);

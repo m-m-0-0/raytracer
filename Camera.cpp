@@ -76,38 +76,87 @@ Vector3 Camera::shoot_ray_bvh(const Ray &ray, int max_bounces) {
 Hit Camera::shoot_shadow_rays(){
     return {};
 }
+Image* Camera::render(){
+    Image* image = new Image(width, height);
+    return render(image);
+}
 
-Image* Camera::render(Window* window) {
-    auto* img = new Image(width, height);
+Image* Camera::render(Image* image) {
+    scene->build_bvh();
+    setup_values();
 
+    int tiles_done = 0;
+    int tiles_size = this->tiles_size;
+
+    //render
+    int horizontal_tiles = (int)ceil((double)width/tiles_size);
+    int vertical_tiles = (int)ceil((double)height/tiles_size);
+    int tiles = horizontal_tiles * vertical_tiles;
+
+#pragma omp parallel for default(none) shared(image, std::cout, tiles_done) schedule(dynamic, 1)
+    for(int tile_index = 0; tile_index<tiles; tile_index++) {
+        auto start = std::chrono::high_resolution_clock::now();
+
+        int tile_x = tile_index % horizontal_tiles;
+        int tile_y = tile_index / horizontal_tiles;
+
+#pragma omp parallel for default(none) shared(image, std::cout, tile_index, tile_x, tile_y, tiles_size, tiles_done) schedule(dynamic, 1)
+        for (int y = tile_y * tiles_size; y < std::min((tile_y + 1) * tiles_size, height); y++){ //for each pixel in tile
+            for (int x = tile_x * tiles_size; x < std::min((tile_x + 1) * tiles_size, width); x++) { //for each pixel in tile
+                try {
+                    for(int s=0; s<samples; s++){
+                        auto ray = get_random_ray(x, y);
+                        auto color = shoot_ray_bvh(ray, max_bounces); //bvh
+                        image->set_pixel(x, y, image->get_pixel(x, y) + color);
+                    }
+                } catch(std::exception& e){
+                    std::cout << e.what() << std::endl;
+                }
+            }
+        }
+        tiles_done++;
+
+        if(tiles_done % 100 == 0) {
+            auto end = std::chrono::high_resolution_clock::now();
+            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+            std::cout << "Rendered tile " << tile_index << " in " << duration << "ms" << std::endl;
+            //Mrays/s
+            std::cout << "Speed: " << (double) (width * samples * tiles_done) / duration / 1000.0 << " Mrays/s"
+                      << std::endl;
+            //progress and estimated time
+            std::cout << "Progress: " << (tiles_done * 100.0) / height << "%, ";
+            std::cout << "Estimated time: " << (duration * (height - tiles_done)) / 1000.0 / 10 << "s" << std::endl;
+        }
+    }
+    return image;
+}
+
+Image* Camera::render_lines(Image* image) {
     scene->build_bvh();
     setup_values();
 
     int lines_done = 0;
 
     //render
-    #pragma omp parallel for default(none) shared(img, std::cout, lines_done, window)
+    #pragma omp parallel for default(none) shared(image, std::cout, lines_done) schedule(dynamic, 1)
     for(int y=0; y<height; y++){
         std::chrono::high_resolution_clock::time_point start;
         if(y % 100 == 0){
             start = std::chrono::high_resolution_clock::now();
         }
-        #pragma omp parallel for default(none) shared(img, y, std::cout)
+        #pragma omp parallel for default(none) shared(image, y, std::cout) schedule(dynamic, 1)
         for(int x=0; x<width; x++){
             try {
                 for(int s=0; s<samples; s++){
                     auto ray = get_random_ray(x, y);
                     auto color = shoot_ray_bvh(ray, max_bounces); //bvh
-                    img->set_pixel(x, y, img->get_pixel(x, y) + color);
+                    image->set_pixel(x, y, image->get_pixel(x, y) + color);
                 }
             } catch(std::exception& e){
                 std::cout << e.what() << std::endl;
             }
         }
         lines_done++;
-        if(y % 10){
-            window->redraw();
-        }
         if(y % 100 == 0){
             auto end = std::chrono::high_resolution_clock::now();
             auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end-start).count();
@@ -117,21 +166,10 @@ Image* Camera::render(Window* window) {
             //progress and estimated time
             std::cout << "Progress: " << (lines_done * 100.0) / height << "%, ";
             std::cout <<"Estimated time: " << (duration * (height - lines_done)) / 1000.0 / 10 << "s" << std::endl;
-
-            //update image
-            Image* scaled = new Image(width, height);
-            for(int y=0; y<height; y++){
-                for(int x=0; x<width; x++){
-                    scaled->set_pixel(x, y, img->get_pixel(x, y));
-                }
-            }
-            scaled->normalize(samples);
-            window->update(scaled);
-            delete scaled;
         }
     }
 
-    return img;
+    return image;
 }
 
 Vector3 Camera::pixel_sample_offset(){

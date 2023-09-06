@@ -37,6 +37,7 @@ public:
 
     int max_bounces = 10;
     int samples = 10;
+    int tiles_size = 32;
 
     void look_at(Vector3 position){
         focal_length = 1.0;
@@ -127,6 +128,10 @@ public:
     double focal_length = 0.0;
 
     Vector3 shoot_ray_bvh(const Ray &ray, int max_bounces);
+
+    Image *render(Image *image);
+
+    Image *render_lines(Image *image);
 };
 
 

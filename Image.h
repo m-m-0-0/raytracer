@@ -62,6 +62,8 @@ public:
     void load(const std::string& path);
 
     void normalize(int samples_per_pixel);
+
+    Vector3 get_pixel(int x, int y, int samples_per_pixel);
 };
 
 
